@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Engineering an Institution-Ready Academic AI Platform — R-B.A.T | Ruthuraraj R</title>
+<meta name="description" content="A build log documenting the architectural turning points behind R-B.A.T — a local-first, workflow-oriented academic AI platform — and why architecture, not the language model, turned out to be the thing that lasted.">
+<meta property="og:title" content="Engineering an Institution-Ready Academic AI Platform — R-B.A.T">
+<meta property="og:description" content="Why one knowledge layer, four academic workflows, and a local-first constraint became the foundation of a five-month platform.">
+<meta property="og:type" content="article">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0f1f3d;
+    --navy-mid: #1b3a6b;
+    --accent: #2563eb;
+    --accent-light: #dbeafe;
+    --purple: #7c3aed;
+    --purple-light: #ede9fe;
+    --amber: #d97706;
+    --amber-light: #fef3c7;
+    --coral: #e05a3a;
+    --coral-light: #fee2e2;
+    --green: #15803d;
+    --green-light: #dcfce7;
+    --bg: #f8f9fc;
+    --surface: #ffffff;
+    --border: #e2e8f0;
+    --text: #0f172a;
+    --text-muted: #64748b;
+    --text-light: #94a3b8;
+    --serif: 'DM Serif Display', Georgia, serif;
+    --sans: 'DM Sans', system-ui, sans-serif;
+    --mono: 'DM Mono', monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--sans);
+    color: var(--text);
+    background: var(--bg);
+    line-height: 1.75;
+    font-weight: 300;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .topbar {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(248,249,252,0.9);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    height: 58px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .topbar a.back {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    transition: color 0.2s;
+  }
+  .topbar a.back:hover { color: var(--purple); }
+  .topbar .brand { font-family: var(--serif); font-size: 1.05rem; color: var(--navy); }
+
+  .progress { position: fixed; top: 0; left: 0; height: 3px; background: var(--purple); width: 0%; z-index: 200; transition: width 0.1s; }
+
+  .article-hero {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 5rem 2rem 3rem;
+  }
+  .article-eyebrow {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--purple);
+    margin-bottom: 1.5rem;
+    display: flex; align-items: center; gap: 0.7rem;
+  }
+  .article-eyebrow::before { content: ''; width: 28px; height: 1px; background: var(--purple); }
+  h1.article-title {
+    font-family: var(--serif);
+    font-size: clamp(2rem, 4.8vw, 3rem);
+    line-height: 1.12;
+    color: var(--navy);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    margin-bottom: 1.2rem;
+  }
+  .article-sub {
+    font-size: 1.12rem;
+    color: var(--text-muted);
+    font-style: italic;
+    line-height: 1.6;
+    margin-bottom: 2rem;
+  }
+  .article-meta {
+    display: flex; flex-wrap: wrap; gap: 0.6rem 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--text-light);
+  }
+  .article-meta .tag { background: var(--purple-light); color: var(--purple); padding: 0.2rem 0.7rem; border-radius: 20px; font-size: 0.72rem; }
+
+  article { max-width: 720px; margin: 0 auto; padding: 2rem 2rem 4rem; }
+  article h2 {
+    font-family: var(--serif);
+    font-size: clamp(1.45rem, 3.3vw, 1.9rem);
+    color: var(--navy);
+    font-weight: 400;
+    margin: 3.5rem 0 1.2rem;
+    line-height: 1.22;
+  }
+  article h2 .num { font-family: var(--mono); font-size: 0.85rem; color: var(--purple); display: block; margin-bottom: 0.4rem; letter-spacing: 0.1em; }
+  article h3 { font-family: var(--sans); font-weight: 500; font-size: 1.1rem; color: var(--navy); margin: 2.2rem 0 0.7rem; }
+  article p { margin-bottom: 1.3rem; color: var(--text); }
+  article strong { font-weight: 500; color: var(--navy); }
+  article ul { margin: 0 0 1.5rem 1.3rem; }
+  article li { margin-bottom: 0.5rem; }
+
+  .lesson {
+    border-left: 3px solid var(--purple);
+    background: var(--purple-light);
+    padding: 1.2rem 1.5rem;
+    margin: 1.8rem 0;
+    border-radius: 0 8px 8px 0;
+    font-family: var(--serif);
+    font-size: 1.15rem;
+    line-height: 1.5;
+    color: var(--navy);
+    font-style: italic;
+  }
+  .question {
+    border-left: 3px solid var(--accent);
+    background: var(--accent-light);
+    padding: 1rem 1.4rem;
+    margin: 1.5rem 0;
+    border-radius: 0 8px 8px 0;
+    font-size: 1.08rem;
+    color: var(--navy);
+    font-weight: 400;
+  }
+  .diagram {
+    background: var(--navy);
+    color: #cbd5e1;
+    font-family: var(--mono);
+    font-size: 0.76rem;
+    line-height: 1.5;
+    padding: 1.5rem;
+    border-radius: 10px;
+    overflow-x: auto;
+    margin: 1.5rem 0;
+    white-space: pre;
+  }
+  .diagram-caption { font-family: var(--mono); font-size: 0.72rem; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.08em; margin: 0.6rem 0 1.5rem; }
+
+  .turning-point {
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--amber);
+    border-radius: 10px 10px 8px 8px;
+    padding: 1.5rem 1.7rem;
+    margin: 1.8rem 0;
+    background: var(--surface);
+  }
+  .turning-point .tp-label { font-family: var(--mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--amber); margin-bottom: 0.6rem; }
+  .turning-point p:last-child { margin-bottom: 0; }
+
+  .workflow-card {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.5rem 1.7rem;
+    margin: 1.5rem 0;
+    background: var(--surface);
+    border-left: 3px solid var(--teal, #0d9488);
+  }
+  .workflow-card h4 { font-family: var(--sans); font-weight: 500; color: var(--navy); font-size: 1rem; margin-bottom: 0.6rem; }
+  .workflow-card .wf-tag { font-family: var(--mono); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; color: #0d9488; background: #ccfbf1; padding: 0.15rem 0.6rem; border-radius: 20px; display: inline-block; margin-bottom: 0.8rem; }
+  .workflow-card p { font-size: 0.93rem; margin-bottom: 0.7rem; }
+  .workflow-card p:last-child { margin-bottom: 0; }
+
+  .principle-list { display: grid; gap: 0.9rem; margin: 1.5rem 0; }
+  .principle {
+    display: grid; grid-template-columns: auto 1fr; gap: 1rem;
+    padding: 1rem 1.2rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .principle .p-num { font-family: var(--serif); font-size: 1.4rem; color: var(--purple); line-height: 1; }
+  .principle .p-title { font-weight: 500; color: var(--navy); margin-bottom: 0.3rem; font-size: 0.95rem; }
+  .principle .p-text { font-size: 0.88rem; color: var(--text-muted); }
+
+  code { font-family: var(--mono); font-size: 0.88em; background: #eef2f7; padding: 0.1rem 0.4rem; border-radius: 4px; color: var(--purple); }
+
+  .article-footer { max-width: 720px; margin: 0 auto; padding: 3rem 2rem 5rem; border-top: 1px solid var(--border); }
+  .article-footer .resources { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.8rem; margin-bottom: 2rem; }
+  .article-footer h3 { margin-top: 0; }
+  .article-footer a.repo { color: var(--accent); text-decoration: none; font-family: var(--mono); font-size: 0.9rem; word-break: break-all; }
+  .article-footer a.repo:hover { text-decoration: underline; }
+  .back-to-portfolio {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: var(--navy); color: white;
+    padding: 0.8rem 1.5rem; border-radius: 8px;
+    text-decoration: none; font-size: 0.9rem;
+    transition: background 0.2s;
+  }
+  .back-to-portfolio:hover { background: var(--navy-mid); }
+
+  @media (max-width: 640px) {
+    .topbar { padding: 0 1.2rem; }
+    .article-hero, article, .article-footer { padding-left: 1.3rem; padding-right: 1.3rem; }
+    .diagram { font-size: 0.65rem; padding: 1rem; }
+    .principle { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+
+<div class="topbar">
+  <a class="back" href="index.html#writing">← Back to portfolio</a>
+  <span class="brand">Ruthuraraj R.</span>
+</div>
+
+<div class="article-hero">
+  <div class="article-eyebrow">Build Log · Long-Term Vision · R-B.A.T</div>
+  <h1 class="article-title">Engineering an Institution-Ready Academic AI Platform</h1>
+  <p class="article-sub">Why one knowledge layer, four academic workflows, and a local-first constraint became the architecture that outlived every model swap.</p>
+  <div class="article-meta">
+    <span class="tag">RAG</span>
+    <span class="tag">Local-First</span>
+    <span class="tag">Workflow Architecture</span>
+    <span class="tag">Educational AI</span>
+    <span>~18 min read</span>
+  </div>
+</div>
+
+<article id="article">
+  <p>Most AI tutoring tools answer questions. Very few of them ask what happens after the answer — what a faculty member needs when they're preparing a question paper at 11pm, or what a student needs when the explanation they got doesn't match the diagram in their textbook.</p>
+
+  <p>R-B.A.T started as an attempt to answer one narrow question: could Retrieval-Augmented Generation ground AI explanations in a prescribed textbook, instead of the internet-scale knowledge a general chatbot pulls from? Five months later, it had become something I hadn't planned for — a single institutional knowledge layer supporting four entirely different academic workflows, running fully offline, with an architecture that never needed a rewrite despite the language model underneath it changing several times.</p>
+
+  <p>This is the case study version of engineering notes I kept along the way — not a demo reel, but the decisions, constraints, and turning points that shaped why R-B.A.T looks the way it does.</p>
+
+  <h2>Why it exists</h2>
+
+  <p>Students already use AI before they open a textbook — that's not a hypothetical, it's just how studying works now. The real question isn't whether they should. It's whether the AI they're using actually supports what their institution is trying to teach them.</p>
+
+  <p>Generic AI systems answer from broad internet knowledge. Engineering classrooms run on prescribed textbooks — specific terminology, specific diagrams, specific worked examples chosen to match a curriculum. A technically correct answer that ignores all of that isn't wrong, exactly. It's just not <em>the</em> answer the classroom is built around.</p>
+
+  <p>That gap was the starting point. Not "replace the textbook," but: what if the AI's knowledge <em>was</em> the textbook?</p>
+
+  <h3>From a tutor to a platform</h3>
+
+  <p>As the idea developed, a second observation mattered more than the first. Students and faculty interact with the same academic knowledge for completely different purposes — a student wants an explanation, a faculty member needs a question paper, model answers, or lecture slides. Different tasks, same underlying foundation.</p>
+
+  <div class="lesson">Rather than building separate AI tools for each academic task, could a single institutional knowledge layer support multiple academic workflows?</div>
+
+  <p>That question — not any individual feature — became the actual design target. Everything that came after (assessment generation, model answers, presentations) wasn't a bolt-on feature. It was another workflow built on the same shared foundation.</p>
+
+  <h2><span class="num">Turning Point I</span>When Cloud AI Became the Bottleneck</h2>
+
+  <p>R-B.A.T began in <strong>January 2026</strong>, prototyped against cloud-hosted LLMs — convenient for fast iteration in the early stages. By <strong>February</strong>, that convenience became the actual constraint. Every prompt refinement, every retrieval tweak, every workflow redesign required another round trip to a model with a token limit. Development didn't stall because the ideas ran out — it stalled because the environment did.</p>
+
+  <p>Switching to <strong>Ollama</strong> and local models changed the shape of the project, not just the cost. Experimentation stopped being a metered resource. Prompts could be rewritten ten times in an hour with no quota to watch.</p>
+
+  <div class="turning-point">
+    <div class="tp-label">⚡ Turning point</div>
+    <p>The decision to go local-first wasn't originally about privacy or cost — those benefits came later. It came from a much more practical realization: <strong>the development process itself needed to be independent of cloud limitations before the final system could become independent of them.</strong></p>
+  </div>
+
+  <div class="lesson">Sometimes the most important architectural decision isn't the one that improves the final system — it's the one that removes constraints from the engineering process itself.</div>
+
+  <h2><span class="num">Turning Point II</span>When One Chatbot Wasn't Enough</h2>
+
+  <p>The earliest R-B.A.T was a single conversational workflow: question in, retrieved context, grounded answer out. As new ideas arrived, each looked like a natural extension of the same chatbot — <em>if it can explain concepts, surely it can generate exam questions too.</em></p>
+
+  <p>For a while, stacking more prompts and conditional logic onto one pipeline worked. Then it didn't. A tutor is trying to build understanding. An assessment workflow is trying to evaluate learning. A model answer has to demonstrate academic expectations, not just explain them. A presentation has to sequence ideas for a classroom, not answer a single question. Four genuinely different reasoning problems, wearing the same conversational interface.</p>
+
+  <div class="question">The problem wasn't the language model anymore. The problem was the architecture.</div>
+
+  <p>The fix was to stop treating tutoring, assessment, evaluation, and presentation generation as features of one chatbot, and instead build them as separate workflows sharing one knowledge base — each with its own reasoning strategy, validation rules, and output format.</p>
+
+  <div class="lesson">As AI systems grow beyond a single use case, architecture becomes more important than prompts. Well-defined workflows scale far more effectively than continually expanding a single conversational interface.</div>
+
+  <h2>The architecture that resulted</h2>
+
+  <p>Five layers, cleanly separated:</p>
+
+  <div class="diagram">                 Streamlit UI
+              Unified Academic Platform
+                       │
+                       ▼
+       Specialized Academic Workflows
+    Tutor │ Assessment │ Evaluation │ Presentation
+                       │
+                       ▼
+     Academic Knowledge & Retrieval Layer
+   Textbooks │ Diagrams │ Metadata │ FAISS │ SBERT
+                       │
+                       ▼
+         Local LLM Runtime (Ollama)
+                       │
+                       ▼
+      PDF │ DOCX │ PPTX │ Tutor Responses</div>
+  <p class="diagram-caption">Figure · Layered architecture — every workflow shares one knowledge layer</p>
+
+  <p>The retrieval stage barely changes across workflows, because every workflow draws on the same institutional knowledge. What differs is everything <em>after</em> retrieval — how each workflow reasons about what it retrieved, what it validates before generating, and what artifact it produces.</p>
+
+  <div class="lesson">Remembering, finding, and reasoning are three different jobs. The Academic Knowledge Layer remembers. The Retrieval Engine finds. The language model reasons. Keeping those separate meant improvements to the knowledge base benefited every workflow at once, without touching the model.</div>
+
+  <h2>Four workflows, one foundation</h2>
+
+  <p>Each workflow follows the same shape — retrieve, reason, validate, generate — but the middle two steps look almost nothing alike from one workflow to the next.</p>
+
+  <div class="workflow-card">
+    <span class="wf-tag">Tutor Workflow</span>
+    <h4>Where R-B.A.T started</h4>
+    <p><strong>Purpose:</strong> Let students learn through AI without drifting away from the prescribed textbook. Every response starts from retrieved textbook context, not the model's internal knowledge — and questions outside the syllabus are intentionally rejected rather than answered generically.</p>
+    <p><strong>Key decision:</strong> Diagram-aware retrieval. Engineering concepts frequently live in the diagram, not the surrounding text, so figures are retrieved alongside passages whenever relevant — plus multiple explanation styles (beginner, analogy, exam-focused) for the same underlying concept.</p>
+    <p><strong>Lesson:</strong> The usefulness of an educational AI system depends less on what the model knows and more on how well the right academic context is retrieved before reasoning even starts.</p>
+  </div>
+
+  <div class="workflow-card">
+    <span class="wf-tag">Assessment Workflow</span>
+    <h4>For faculty, not students</h4>
+    <p><strong>Purpose:</strong> Generate institution-ready question papers — not just questions, but ones aligned to Bloom's Taxonomy distribution, mapped to Course Outcomes, formatted to institutional convention.</p>
+    <p><strong>Key decision:</strong> Constraints before generation, not creativity after it. A model can write grammatically correct questions easily; producing academically appropriate, non-duplicated, cognitively diverse ones needed explicit validation layers before anything reached the page — then exported as both print-ready PDF and editable DOCX, since faculty rarely use generated content unmodified.</p>
+    <p><strong>Lesson:</strong> Generating academically useful assessments requires carefully designed constraints before generation, not additional creativity after generation.</p>
+  </div>
+
+  <div class="workflow-card">
+    <span class="wf-tag">Evaluation Workflow</span>
+    <h4>A different job from tutoring, even with the same content</h4>
+    <p><strong>Purpose:</strong> Generate textbook-grounded model answers and indicative marking schemes — reference material for consistent evaluation, not conversational explanation.</p>
+    <p><strong>Key decision:</strong> Structured academic responses instead of conversational ones. Model answers need completeness and logical flow suited to examination contexts, with diagrams incorporated where the concept demands it, plus a marking scheme outlining expected mark distribution.</p>
+    <p><strong>Lesson:</strong> Good tutoring encourages understanding. Good model answers demonstrate academic expectations. Same knowledge layer, genuinely different reasoning strategy.</p>
+  </div>
+
+  <div class="workflow-card">
+    <span class="wf-tag">Presentation Workflow</span>
+    <h4>Structure before slides</h4>
+    <p><strong>Purpose:</strong> Turn textbook content into classroom-ready, fully editable lecture presentations — not polished slides for passive viewing, but material faculty can actually teach from and modify.</p>
+    <p><strong>Key decision:</strong> Planning and rendering had to be separated. Early prototypes asked the model to generate slide content and layout simultaneously — that became unmaintainable fast. Introducing a structured intermediate JSON representation split instructional planning from visual rendering, so themes and layouts could evolve independently of the reasoning that decides what goes on each slide.</p>
+    <p><strong>Lesson:</strong> Teaching isn't presenting information — it's guiding students through a structured sequence of ideas. That's an instructional design problem as much as a generation problem.</p>
+  </div>
+
+  <h2>Diagrams aren't decorative — they're the concept</h2>
+
+  <p>Early tutoring worked well for theoretical, text-heavy topics. It broke down for mechanisms, thermodynamic cycles, circuit diagrams, control systems — anything where the diagram doesn't <em>illustrate</em> the concept, it <em>is</em> the concept.</p>
+
+  <div class="diagram">           BEFORE                          AFTER
+
+     Student Question               Student Question
+            │                       ┌────────┴────────┐
+            ▼                       ▼                 ▼
+    Retrieve Text Context    Retrieve Text      Retrieve Figures
+            │                Context            & Diagrams
+            ▼                       └────────┬────────┘
+    Local LLM Reasoning                       ▼
+            │                     Integrated Academic Context
+            ▼                                 │
+    Text-based Explanation                    ▼
+                                    Local LLM Reasoning
+                                               │
+                                               ▼
+                                  Grounded Explanation + Diagram</div>
+  <p class="diagram-caption">Figure · The Tutor Workflow before and after diagrams became first-class knowledge</p>
+
+  <p>Once figures became part of the Academic Knowledge Layer rather than an afterthought, every other workflow inherited that capability for free — presentations could pull in the same figures, model answers could reference them. One change to the knowledge layer, four workflows benefited without extra implementation.</p>
+
+  <div class="lesson">In engineering education, diagrams aren't decorative elements added after explanation. They're an integral part of the knowledge itself. Treating visual information as first-class academic knowledge significantly improves both retrieval quality and educational value.</div>
+
+  <h2>What survived five months of change</h2>
+
+  <p>The language model underneath R-B.A.T changed several times as better local models became available. The architecture around it didn't need to. Four principles account for most of why:</p>
+
+  <div class="principle-list">
+    <div class="principle">
+      <span class="p-num">1</span>
+      <div><div class="p-title">Generate artifacts, not conversations</div><div class="p-text">Faculty needed editable question papers and PPTX files, not chat responses that disappear when the session ends. The shift from "answer a question" to "produce a reusable academic artifact" changed what counted as a good output.</div></div>
+    </div>
+    <div class="principle">
+      <span class="p-num">2</span>
+      <div><div class="p-title">Models will change. Architecture shouldn't.</div><div class="p-text">Treating the Local LLM Runtime as a replaceable component, not the center of the system, meant every model upgrade was a drop-in swap — never a redesign.</div></div>
+    </div>
+    <div class="principle">
+      <span class="p-num">3</span>
+      <div><div class="p-title">Knowledge is the long-term asset</div><div class="p-text">Models get upgraded. Frameworks change. The curated textbooks, syllabus structure, and diagrams don't — and turned out to matter more to output quality than which model was running underneath.</div></div>
+    </div>
+    <div class="principle">
+      <span class="p-num">4</span>
+      <div><div class="p-title">Constraints often lead to better architecture</div><div class="p-text">Limited API access forced local-first. CPU-only deployment forced efficient design. Institutional privacy requirements forced offline operation. None of these were chosen freely — and the system is better for having had to solve them.</div></div>
+    </div>
+  </div>
+
+  <h2>Where it's honestly limited</h2>
+
+  <p>This is a platform built as an engineering exploration, not a production institutional deployment — and it has real, unresolved edges:</p>
+
+  <ul>
+    <li><strong>Single-institution scope.</strong> The knowledge layer is built around one institution's textbooks and syllabus. Multi-institution support would need a way to manage several independent knowledge layers without them bleeding into each other.</li>
+    <li><strong>Retrieval is still document-centric.</strong> Relationships between concepts are inferred through semantic similarity, not explicitly represented. A concept graph or knowledge graph could let the system reason across interconnected topics instead of retrieving isolated fragments.</li>
+    <li><strong>Workflows are deterministic, not adaptive.</strong> Each one follows a fixed retrieve → reason → validate → render sequence. There's no planning or reflection step yet — more agentic patterns could let workflows adjust their own behavior mid-task, if it's worth the added complexity.</li>
+    <li><strong>Human review is by design, not by gap.</strong> Every generated artifact is meant to be a strong first draft, not a final answer. Final academic responsibility stays with faculty — that's a deliberate boundary, not something to automate away.</li>
+  </ul>
+
+  <h2>Reflection</h2>
+
+  <p>When this started in January, the goal was narrow: see if RAG could ground explanations in a textbook instead of general internet knowledge. I thought of it as a RAG application.</p>
+
+  <p>The improvements that actually mattered rarely came from changing the model. They came from strengthening what surrounded it — how the knowledge was organized, how the workflows were separated, how well I understood the educational context the system had to work inside. Somewhere in that process the question I was asking changed, from <em>"which model should I use?"</em> to <em>"what knowledge should the system possess, and will this decision still make sense as the platform grows?"</em></p>
+
+  <div class="lesson">The most valuable outcome of R-B.A.T wasn't any single workflow or technical choice. It was realizing that educational AI is fundamentally a knowledge engineering problem, supported by architecture — not the other way around.</div>
+
+  <p>That's the part I expect to outlast this specific project. Models will keep changing. This one already has, several times. The architecture built to survive that didn't need to.</p>
+</article>
+
+<div class="article-footer">
+  <div class="resources">
+    <h3>Project Resources</h3>
+    <p style="margin-bottom:0.8rem; color:var(--text-muted); font-size:0.9rem;">Retrieval-Augmented Generation · Ollama (Local LLMs) · FAISS · Sentence Transformers · Workflow-Oriented Architecture · ReportLab · python-docx · python-pptx · Streamlit</p>
+    <p style="font-size:0.85rem; color:var(--text-light);">R-B.A.T is a private repository — demo available on request.</p>
+  </div>
+  <a class="back-to-portfolio" href="index.html#projects">← Back to all projects</a>
+</div>
+
+<script>
+  const progress = document.getElementById('progress');
+  window.addEventListener('scroll', () => {
+    const h = document.documentElement;
+    const scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+    progress.style.width = scrolled + '%';
+  });
+</script>
+</body>
+</html>
