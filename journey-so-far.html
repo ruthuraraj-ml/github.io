@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Journey So Far — Ruthuraraj R</title>
+<meta name="description" content="From an NPTEL Python course taken to teach LeetCode, to a portfolio of agentic AI systems — the coursework, stalls, and turning points behind every project here.">
+<meta property="og:title" content="The Journey So Far">
+<meta property="og:description" content="The coursework, stalls, and turning points behind every project in this portfolio.">
+<meta property="og:type" content="article">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0f1f3d;
+    --navy-mid: #1b3a6b;
+    --accent: #2563eb;
+    --accent-light: #dbeafe;
+    --teal: #0d9488;
+    --teal-light: #ccfbf1;
+    --amber: #d97706;
+    --amber-light: #fef3c7;
+    --coral: #e05a3a;
+    --coral-light: #fee2e2;
+    --purple: #7c3aed;
+    --purple-light: #ede9fe;
+    --green: #15803d;
+    --green-light: #dcfce7;
+    --bg: #f8f9fc;
+    --surface: #ffffff;
+    --border: #e2e8f0;
+    --text: #0f172a;
+    --text-muted: #64748b;
+    --text-light: #94a3b8;
+    --serif: 'DM Serif Display', Georgia, serif;
+    --sans: 'DM Sans', system-ui, sans-serif;
+    --mono: 'DM Mono', monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--sans);
+    color: var(--text);
+    background: var(--bg);
+    line-height: 1.75;
+    font-weight: 300;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .topbar {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(248,249,252,0.9);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    height: 58px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .topbar a.back {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    transition: color 0.2s;
+  }
+  .topbar a.back:hover { color: var(--teal); }
+  .topbar .brand { font-family: var(--serif); font-size: 1.05rem; color: var(--navy); }
+
+  .progress { position: fixed; top: 0; left: 0; height: 3px; background: var(--teal); width: 0%; z-index: 200; transition: width 0.1s; }
+
+  .article-hero {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 5rem 2rem 3rem;
+  }
+  .article-eyebrow {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 1.5rem;
+    display: flex; align-items: center; gap: 0.7rem;
+  }
+  .article-eyebrow::before { content: ''; width: 28px; height: 1px; background: var(--teal); }
+  h1.article-title {
+    font-family: var(--serif);
+    font-size: clamp(2.1rem, 5vw, 3.2rem);
+    line-height: 1.1;
+    color: var(--navy);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    margin-bottom: 1.2rem;
+  }
+  .article-sub {
+    font-size: 1.12rem;
+    color: var(--text-muted);
+    font-style: italic;
+    line-height: 1.6;
+    margin-bottom: 2rem;
+  }
+  .article-meta {
+    display: flex; flex-wrap: wrap; gap: 0.6rem 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--text-light);
+  }
+  .article-meta .tag { background: var(--teal-light); color: var(--teal); padding: 0.2rem 0.7rem; border-radius: 20px; font-size: 0.72rem; }
+
+  article { max-width: 700px; margin: 0 auto; padding: 1rem 2rem 3rem; }
+  .lede { font-size: 1.05rem; color: var(--text-muted); margin-bottom: 2.5rem; line-height: 1.75; }
+  .lede strong { color: var(--navy); font-weight: 500; }
+
+  .timeline { display: flex; flex-direction: column; }
+  .tnode { display: grid; grid-template-columns: 92px 24px 1fr; gap: 0 1.2rem; }
+  .tnode.minor { grid-template-columns: 92px 24px 1fr; }
+  .tdate { font-family: var(--mono); font-size: 0.78rem; color: var(--text-light); padding-top: 0.2rem; text-align: right; }
+  .tline { display: flex; flex-direction: column; align-items: center; }
+  .tdot { width: 11px; height: 11px; border-radius: 50%; margin-top: 0.25rem; flex-shrink: 0; }
+  .tdot.minor { width: 7px; height: 7px; margin-top: 0.35rem; }
+  .trail { width: 1px; flex: 1; background: var(--border); margin-top: 0.25rem; min-height: 1.2rem; }
+  .tcontent { padding-bottom: 1.9rem; }
+  .ttitle { font-weight: 500; color: var(--navy); font-size: 1.05rem; margin-bottom: 0.4rem; font-family: var(--serif); }
+  .ttext { font-size: 0.94rem; color: var(--text-muted); line-height: 1.7; }
+  .ttext em { color: var(--text); font-style: italic; }
+  .ttext strong { color: var(--navy); font-weight: 500; }
+
+  .lesson {
+    border-left: 3px solid var(--teal);
+    background: var(--teal-light);
+    padding: 1.1rem 1.4rem;
+    margin: 0.5rem 0 2rem;
+    border-radius: 0 8px 8px 0;
+    font-family: var(--serif);
+    font-size: 1.1rem;
+    line-height: 1.5;
+    color: var(--navy);
+    font-style: italic;
+  }
+
+  .closing { margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border); font-size: 1rem; color: var(--text-muted); line-height: 1.8; }
+  .closing strong { color: var(--navy); font-weight: 500; }
+
+  .article-footer { max-width: 700px; margin: 0 auto; padding: 2rem 2rem 5rem; }
+  .back-to-portfolio {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: var(--navy); color: white;
+    padding: 0.8rem 1.5rem; border-radius: 8px;
+    text-decoration: none; font-size: 0.9rem;
+    transition: background 0.2s;
+  }
+  .back-to-portfolio:hover { background: var(--navy-mid); }
+
+  @media (max-width: 640px) {
+    .topbar { padding: 0 1.2rem; }
+    .article-hero, article, .article-footer { padding-left: 1.3rem; padding-right: 1.3rem; }
+    .tnode { grid-template-columns: 68px 20px 1fr; gap: 0 0.8rem; }
+    .tdate { font-size: 0.7rem; }
+  }
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+
+<div class="topbar">
+  <a class="back" href="index.html#hero">← Back to portfolio</a>
+  <span class="brand">Ruthuraraj R.</span>
+</div>
+
+<div class="article-hero">
+  <div class="article-eyebrow">The Journey So Far</div>
+  <h1 class="article-title">The Journey So Far</h1>
+  <p class="article-sub">Every project in this portfolio came from coursework, a stall, or a wall I had to find my way around — not from a tutorial. This is the record of how that happened, in order.</p>
+  <div class="article-meta">
+    <span class="tag">Feb 2025 – Aug 2026</span>
+    <span>~6 min read</span>
+  </div>
+</div>
+
+<article>
+
+  <p class="lede">I didn't set out to build an AI portfolio. I started learning Python to teach better — everything below followed from there, one course and one stall at a time.</p>
+
+  <div class="timeline">
+
+    <div class="tnode">
+      <div class="tdate">Feb 2025</div>
+      <div class="tline"><div class="tdot" style="background:var(--teal);"></div><div class="trail"></div></div>
+      <div class="tcontent">
+        <div class="ttitle">I registered for an NPTEL Python course</div>
+        <div class="ttext">Not to become a programmer, but to teach better — including LeetCode problems for my own students. I cleared it on the first attempt. The struggle along the way made it obvious how shallow my actual understanding was.</div>
+      </div>
+    </div>
+
+    <div class="tnode minor">
+      <div class="tdate"></div>
+      <div class="tline"><div class="tdot minor" style="background:#5eead4;"></div><div class="trail"></div></div>
+      <div class="tcontent">
+        <div class="ttext">So I went to <strong>Exercism</strong> to practice — which pulled me into <strong>LeetCode</strong> on its own terms, a habit with its own story I won't get into here. The following semester, I retook the NPTEL course. <strong>Silver, top 5%.</strong></div>
+      </div>
+    </div>
+
+    <div class="tnode">
+      <div class="tdate">Jun 2025</div>
+      <div class="tline"><div class="tdot" style="background:var(--accent);"></div><div class="trail"></div></div>
+      <div class="tcontent">
+        <div class="ttitle">My institution's AICTE QIP at IIIT Allahabad opened the door to AI</div>
+        <div class="ttext">"From AI to GenAI" — my first real exposure to either. I had no formal grounding in ML or AI at all, so I stacked two more courses in the same semester just to keep up: <em>AI: Concepts &amp; Techniques</em> and <em>Introduction to Machine Learning</em>.</div>
+      </div>
+    </div>
+
+    <div class="tnode minor">
+      <div class="tdate"></div>
+      <div class="tline"><div class="tdot minor" style="background:#93c5fd;"></div><div class="trail"></div></div>
+      <div class="tcontent">
+        <div class="ttext">The program demanded <strong>6 projects and a capstone</strong>. The capstone became part of my PhD research, later submitted to a journal.</div>
+      </div>
+    </div>
+
+    <div class="tnode">
+      <div class="tdate">Nov 2025</div>
+      <div class="tline"><div class="tdot" style="background:var(--amber);"></div><div class="trail"></div></div>
+      <div class="tcontent">
+        <div class="ttitle">QIP ended. I didn't stop.</div>
+        <div class="ttext">An SRGAN project, built just after, pulled me further into generative AI — the first project that wasn't required by anything. The courses gave me theory. Building things from scratch — Word2Vec, a tokenizer, a ReAct agent with no framework at all — is how I checked whether I actually understood it.</div>
+      </div>
+    </div>
+
+    <div class="tnode">
+      <div class="tdate">Jan 2026</div>
+      <div class="tline"><div class="tdot" style="background:var(--purple);"></div><div class="trail"></div></div>
+      <div class="tcontent">
+        <div class="ttitle">R-B.A.T begins — and immediately hits a wall</div>
+        <div class="ttext">A Tutor workflow, grounded in prescribed textbooks, worked well. Partway through building the Assessment Generator that followed it, I ran into a hard token bottleneck on cloud APIs. <em>Development didn't stall for lack of ideas — it stalled because the environment couldn't keep up with them.</em></div>
+      </div>
+    </div>
+
+    <div class="tnode">
+      <div class="tdate">Feb 2026</div>
+      <div class="tline"><div class="tdot" style="background:var(--coral);"></div><div class="trail"></div></div>
+      <div class="tcontent">
+        <div class="ttitle">R-B.A.T goes quiet under two hard courses</div>
+        <div class="ttext">Two more NPTEL courses that semester took most of my attention. The bottleneck stayed unsolved — not abandoned, just waiting.</div>
+      </div>
+    </div>
+
+    <div class="tnode">
+      <div class="tdate">Spring '26</div>
+      <div class="tline"><div class="tdot" style="background:var(--teal);"></div><div class="trail"></div></div>
+      <div class="tcontent">
+        <div class="ttitle">A workshop mentions Ollama — R-B.A.T comes back</div>
+        <div class="ttext">Near the end of my second course, local LLMs entered the picture almost by accident. Once inference wasn't metered anymore, the Assessment Generator finished — then Model Answer and Presentation Generation followed.</div>
+      </div>
+    </div>
+
+    <div class="tnode">
+      <div class="tdate">May–Jul 2026</div>
+      <div class="tline"><div class="tdot" style="background:var(--navy-mid);"></div><div class="trail"></div></div>
+      <div class="tcontent">
+        <div class="ttitle">Analytics Vidhya coursework</div>
+        <div class="ttext">Analytics Vidhya gave me the frameworks — CrewAI, LangGraph, multi-agent architectures. The theory came earlier, from QIP and the NPTEL courses. The one concrete pattern I already had hands-on — deterministic logic paired with an LLM — came from R-B.A.T's stall and recovery. AV gave the rest a place to go.</div>
+      </div>
+    </div>
+
+    <div class="tnode">
+      <div class="tdate">Aug 2026</div>
+      <div class="tline"><div class="tdot" style="background:var(--green);"></div></div>
+      <div class="tcontent" style="padding-bottom:0;">
+        <div class="ttitle">Here</div>
+        <div class="ttext">Every project in this portfolio traces back to one of these stages.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="closing">
+    None of this was a straight line. R-B.A.T stalled for a real reason and came back for an almost incidental one. Building things from scratch, over and over, is still how I check whether I've actually learned something. This is the order it happened in.
+  </div>
+
+</article>
+
+<div class="article-footer">
+  <a class="back-to-portfolio" href="index.html#projects">See what came out of it →</a>
+</div>
+
+<script>
+  const progress = document.getElementById('progress');
+  window.addEventListener('scroll', () => {
+    const h = document.documentElement;
+    const scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+    progress.style.width = scrolled + '%';
+  });
+</script>
+</body>
+</html>
